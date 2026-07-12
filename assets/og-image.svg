@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0468e8"/><stop offset=".65" stop-color="#099cf7"/><stop offset="1" stop-color="#27c5ff"/></linearGradient>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<circle cx="1030" cy="100" r="220" fill="#fff" opacity=".12"/>
+<circle cx="80" cy="600" r="260" fill="#00efff" opacity=".12"/>
+<text x="90" y="150" fill="#dff4ff" font-family="Arial, sans-serif" font-size="34" font-weight="700">SKT 공식인증대리점</text>
+<text x="90" y="285" fill="#fff" font-family="Arial, sans-serif" font-size="82" font-weight="900">티원모바일 용문점</text>
+<text x="90" y="390" fill="#fff" font-family="Arial, sans-serif" font-size="92" font-weight="900">1주년 행사</text>
+<rect x="90" y="455" width="360" height="72" rx="36" fill="#fff"/>
+<text x="270" y="504" text-anchor="middle" fill="#076eea" font-family="Arial, sans-serif" font-size="30" font-weight="900">7월 한정 이벤트</text>
+</svg>
