@@ -42,13 +42,16 @@
      daangn:"https://www.daangn.com/kr/local-profile/bo2se7i65gii/",
      tworld:"https://tworldfriends.co.kr/D634190015/subscribers/create"}
   ];
+  const DEFAULT_STORE_COLUMNS = {
+    "원신흥":"원신흥본점",
+    "용운":"용운점",
+    "용문":"용문점",
+    "아산권곡":"아산권곡점",
+    "지웰시티":"지웰시티점"
+  };
   const FALLBACK_INVENTORY = [
-    {store:"원신흥본점",model:"iPhone 18 Pro",storage:"256GB",color:"화이트",qty:2},
-    {store:"원신흥본점",model:"iPhone 18 Pro Max",storage:"512GB",color:"블루",qty:4},
-    {store:"용문점",model:"Galaxy S26",storage:"256GB",color:"블랙",qty:3},
-    {store:"용운점",model:"Galaxy S26 FE",storage:"256GB",color:"화이트",qty:1},
-    {store:"아산권곡점",model:"Galaxy Z Flip8",storage:"256GB",color:"핑크",qty:2},
-    {store:"지웰시티점",model:"Galaxy Z Fold8",storage:"512GB",color:"블랙",qty:5}
+    {model:"아이폰 15프로맥스",storage:"256G",color:"화이트",companyQty:5,stockByStore:{"원신흥본점":0,"용운점":0,"용문점":1,"아산권곡점":0,"지웰시티점":0}},
+    {model:"아이폰 15프로맥스",storage:"256G",color:"회색",companyQty:4,stockByStore:{"원신흥본점":0,"용운점":1,"용문점":0,"아산권곡점":1,"지웰시티점":0}}
   ];
   const state = {stores:FALLBACK_STORES,inventory:FALLBACK_INVENTORY,slide:0,specialId:"today-special1",contactContext:null};
   const $ = (s, root=document) => root.querySelector(s);
@@ -73,10 +76,30 @@
     for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&quoted&&n==='"'){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===','&&!quoted){row.push(cell);cell=""}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(v=>v!==""))rows.push(row);row=[];cell=""}else cell+=c}
     row.push(cell);if(row.some(v=>v!==""))rows.push(row);return rows;
   }
-  async function loadCsv(url){if(!url)return null;const res=await fetch(url,{cache:"no-store"});if(!res.ok)throw new Error("sheet");const rows=csvRows(await res.text());const headers=rows.shift().map(h=>h.trim().toLowerCase());return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()]))) }
+  async function loadCsv(url){if(!url)return null;const res=await fetch(url,{cache:"no-store"});if(!res.ok)throw new Error("sheet");const rows=csvRows(await res.text());const headers=rows.shift().map(h=>h.trim().toLowerCase().replace(/^\uFEFF/,""));return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()]))) }
+  function toQty(value){
+    const number=Number(String(value??"").replace(/,/g,"").trim());
+    return Number.isFinite(number)&&number>0?Math.floor(number):0;
+  }
+  function transformInventoryRows(rows){
+    const storeColumns=config.inventoryStoreColumns||DEFAULT_STORE_COLUMNS;
+    return rows.map(row=>{
+      const stockByStore={};
+      Object.entries(storeColumns).forEach(([column,storeName])=>{
+        stockByStore[storeName]=toQty(row[column.toLowerCase()]);
+      });
+      return {
+        model:row["모델"]||row.model||"",
+        storage:row["용량"]||row.storage||"",
+        color:row["색상"]||row.color||"",
+        companyQty:toQty(row["전사"]??row.total??row.companyqty),
+        stockByStore
+      };
+    }).filter(item=>item.model&&item.storage&&item.color);
+  }
   async function loadData(){
     try{const rows=await loadCsv(config.storesCsvUrl);if(rows?.length)state.stores=rows.map((r,i)=>({id:r.id||`store${i}`,name:r.name||r.store,address:r.address,lat:+r.lat||+r.latitude,lng:+r.lng||+r.longitude,phone:r.phone,naver:r.naver,navertalk:r.navertalk,daangn:r.daangn,tworld:r.tworld}))}catch(e){toast("매장 기본 정보로 표시 중이에요.")}
-    try{const rows=await loadCsv(config.inventoryCsvUrl);if(rows?.length)state.inventory=rows.map(r=>({store:r.store,model:r.model,storage:r.storage,color:r.color,qty:+r.qty||0}))}catch(e){toast("샘플 재고로 화면을 확인하고 있어요.")}
+    try{const rows=await loadCsv(config.inventoryCsvUrl);if(rows?.length){const inventory=transformInventoryRows(rows);if(inventory.length)state.inventory=inventory}}catch(e){toast("샘플 재고로 화면을 확인하고 있어요.")}
     fillFilters();renderStores();searchInventory();
   }
   function distanceKm(a,b,c,d){const R=6371,toRad=x=>x*Math.PI/180;const p1=toRad(c-a),p2=toRad(d-b);const q=Math.sin(p1/2)**2+Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(p2/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
@@ -95,7 +118,29 @@
   function matchesQuery(item,query){if(!query)return true;const q=norm(query),hay=norm(`${item.model}${item.storage}${item.color}`);if(hay.includes(q))return true;const tokens=query.trim().split(/\s+/).map(norm).filter(Boolean);return tokens.every(t=>hay.includes(t)||lev(t,norm(item.model))<=Math.max(1,Math.floor(t.length*.22)))}
   function fillFilters(){const store=$("#storeFilter"),storage=$("#storageFilter"),color=$("#colorFilter");store.innerHTML='<option value="">상관없음</option>'+[...new Set(state.stores.map(s=>s.name))].map(x=>`<option>${esc(x)}</option>`).join('');storage.innerHTML='<option value="">전체 용량</option>'+[...new Set(state.inventory.map(x=>x.storage))].map(x=>`<option>${esc(x)}</option>`).join('');color.innerHTML='<option value="">전체 색상</option>'+[...new Set(state.inventory.map(x=>x.color))].map(x=>`<option>${esc(x)}</option>`).join('')}
   function stockStatus(qty){if(qty<=0)return{label:"품절",cls:"soldout"};if(qty<=2)return{label:"소진 임박🔥",cls:"urgent"};return{label:"재고 있어요😊",cls:""}}
-  function searchInventory(event){event?.preventDefault();const q=$("#inventoryQuery")?.value||"",store=$("#storeFilter")?.value||"",storage=$("#storageFilter")?.value||"",color=$("#colorFilter")?.value||"";let results=state.inventory.filter(x=>(!store||x.store===store)&&(!storage||x.storage===storage)&&(!color||x.color===color)&&matchesQuery(x,q));const available=results.filter(x=>x.qty>0),soldout=results.filter(x=>x.qty<=0);results=[...available,...soldout];$("#resultSummary").textContent=results.length?`${results.length}개의 재고를 찾았어요. 재고는 실시간 판매에 따라 달라질 수 있습니다.`:"조건에 맞는 재고가 없어요. 검색어 또는 매장을 바꿔보세요.";$("#inventoryList").innerHTML=results.length?results.map((x,i)=>{const s=stockStatus(x.qty),storeData=state.stores.find(v=>v.name===x.store)||{name:x.store,phone:"",naver:"#"};return `<article class="stock-card"><div class="card-top"><div><div class="stock-title"><h3>${esc(x.model)}</h3></div><p class="spec">${esc(x.storage)} · ${esc(x.color)}<br>📍 ${esc(x.store)}</p></div><span class="stock-badge ${s.cls}">${s.label}</span></div><div class="card-actions three">${actionLink("전화문의",`tel:${storeData.phone}`,"inventory_call",storeData,x.qty>0)}${actionLink("길찾기",mapUrl(storeData),"inventory_map",storeData)}<button class="action-button" data-reserve="${i}" ${x.qty<=0?'disabled':''}>재고 예약</button></div></article>`}).join(''):`<div class="empty-state"><strong>검색 결과가 없습니다.</strong>다른 모델명이나 조건으로 다시 검색해 주세요.</div>`;$$('[data-reserve]').forEach((b,i)=>b.onclick=()=>startContact(results[i],"inventory"));bindLogs();if(event)log("inventory_search",{query:q,store,storage,color,resultCount:results.length})}
+  function searchInventory(event){
+    event?.preventDefault();
+    const q=$("#inventoryQuery")?.value||"";
+    const store=$("#storeFilter")?.value||"";
+    const storage=$("#storageFilter")?.value||"";
+    const color=$("#colorFilter")?.value||"";
+    let results=state.inventory
+      .filter(x=>(!storage||x.storage===storage)&&(!color||x.color===color)&&matchesQuery(x,q))
+      .map(x=>({...x,qty:store?toQty(x.stockByStore?.[store]):toQty(x.companyQty)}));
+    const available=results.filter(x=>x.qty>0),soldout=results.filter(x=>x.qty<=0);
+    results=[...available,...soldout];
+    const scope=store||"전사";
+    $("#resultSummary").textContent=results.length?`${scope} 기준 ${results.length}개의 재고를 찾았어요. 재고는 실시간 판매에 따라 달라질 수 있습니다.`:"조건에 맞는 재고가 없어요. 검색어 또는 매장을 바꿔보세요.";
+    $("#inventoryList").innerHTML=results.length?results.map((x,i)=>{
+      const status=stockStatus(x.qty);
+      if(!store)return `<article class="stock-card"><div class="card-top"><div><div class="stock-title"><h3>${esc(x.model)}</h3></div><p class="spec">${esc(x.storage)} · ${esc(x.color)}<br>🏢 전사 재고</p></div><span class="stock-badge ${status.cls}">${status.label}</span></div><div class="card-actions one"><button class="action-button primary" data-reserve="${i}" ${x.qty<=0?'disabled':''}>문의할 매장 선택</button></div></article>`;
+      const storeData=state.stores.find(v=>v.name===store)||{name:store,phone:"",naver:"#"};
+      return `<article class="stock-card"><div class="card-top"><div><div class="stock-title"><h3>${esc(x.model)}</h3></div><p class="spec">${esc(x.storage)} · ${esc(x.color)}<br>📍 ${esc(store)}</p></div><span class="stock-badge ${status.cls}">${status.label}</span></div><div class="card-actions three">${actionLink("전화문의",`tel:${storeData.phone}`,"inventory_call",storeData,x.qty>0)}${actionLink("길찾기",mapUrl(storeData),"inventory_map",storeData)}<button class="action-button" data-reserve="${i}" ${x.qty<=0?'disabled':''}>재고 예약</button></div></article>`;
+    }).join(''):`<div class="empty-state"><strong>검색 결과가 없습니다.</strong>다른 모델명이나 조건으로 다시 검색해 주세요.</div>`;
+    $$('[data-reserve]').forEach(button=>button.onclick=()=>startContact(results[+button.dataset.reserve],"inventory"));
+    bindLogs();
+    if(event)log("inventory_search",{query:q,store:store||"전사",storage,color,resultCount:results.length});
+  }
   function bindLogs(){
     $$('[data-log]').forEach(el=>{
       if(el.dataset.bound)return;
