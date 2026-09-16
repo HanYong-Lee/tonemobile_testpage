@@ -24,7 +24,7 @@
      naver:"https://naver.me/FytQtAEK",
      navertalk:"https://naver.me/GgUe0vNy",
      daangn:"https://www.daangn.com/kr/local-profile/j69a7cum7pqm/",
-     tworld:"https://tworldfriends.co.kr/D634190013/subscribers/create""},
+     tworld:"https://tworldfriends.co.kr/D634190013/subscribers/create"},
     {id:"asankwongok",name:"아산권곡점",
      address:"충남 아산시 문화로 271-6",
      lat: 36.788342575970425, lng: 127.01581654750537,
