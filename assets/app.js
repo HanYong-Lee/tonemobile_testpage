@@ -1,46 +1,11 @@
 (() => {
   const config = window.T1_CONFIG || {};
   const FALLBACK_STORES = [
-    {id:"wonsin",name:"원신흥본점",
-     address:"대전 유성구 봉명로 27-3",
-     lat: 36.34217832389156, lng: 127.34261515812987,
-     phone:"010-2024-2011",
-     naver:"https://naver.me/5pEzM5AE",
-     navertalk:"https://naver.me/Glmu4Q66",
-     daangn:"https://www.daangn.com/kr/local-profile/nj35pauscpaq/",
-     tworld:"https://tworldfriends.co.kr/D634190000/subscribers/create"},
-    {id:"yongun",name:"용운점",
-     address:"대전 동구 용운로 203",
-     lat: 36.32795906726769, lng: 127.4620266934382,
-     phone:"010-4880-5010",
-     naver:"https://naver.me/5ZjdrJ3Q",
-     navertalk:"#",
-     daangn:"https://www.daangn.com/kr/local-profile/5wc4p38gfuoy/",
-     tworld:"https://tworldfriends.co.kr/D634190010/subscribers/create"},
-    {id:"yongmun",name:"용문점",
-     address:"대전 서구 계룡로 661-1",
-     lat: 36.33723627082111, lng: 127.39489427547278,
-     phone:"010-2859-6011",
-     naver:"https://naver.me/FytQtAEK",
-     navertalk:"https://naver.me/GgUe0vNy",
-     daangn:"https://www.daangn.com/kr/local-profile/j69a7cum7pqm/",
-     tworld:"https://tworldfriends.co.kr/D634190013/subscribers/create"},
-    {id:"asankwongok",name:"아산권곡점",
-     address:"충남 아산시 문화로 271-6",
-     lat: 36.788342575970425, lng: 127.01581654750537,
-     phone:"010-3072-6011",
-     naver:"https://naver.me/GplJeXqn",
-     navertalk:"https://naver.me/50JGTvtn",
-     daangn:"https://www.daangn.com/kr/local-profile/iutk11xfiu5b/",
-     tworld:"https://tworldfriends.co.kr/D634190012/subscribers/create"},
-    {id:"jiwell",name:"지웰시티점",
-     address:"충북 청주시 흥덕구 대농로 47",
-     lat: 36.64206725549196, lng: 127.42751718278974,
-     phone:"010-6213-2010",
-     naver:"https://naver.me/xUwgrDjt",
-     navertalk:"https://naver.me/xUwgrDjt",
-     daangn:"https://www.daangn.com/kr/local-profile/bo2se7i65gii/",
-     tworld:"https://tworldfriends.co.kr/D634190015/subscribers/create"}
+    {id:"wonsin",name:"원신흥본점",address:"대전 유성구 봉명로 27-3",image:"images/store-wonsin.jpg",lat:36.34217832389156,lng:127.34261515812987,phone:"010-2024-2011",naver:"https://naver.me/5pEzM5AE",navertalk:"https://naver.me/Glmu4Q66",daangn:"https://www.daangn.com/kr/local-profile/nj35pauscpaq/",tworld:"https://tworldfriends.co.kr/D634190000/subscribers/create"},
+    {id:"yongun",name:"용운점",address:"대전 동구 용운로 203",image:"images/store-yongun.jpg",lat:36.32795906726769,lng:127.4620266934382,phone:"010-4880-5010",naver:"https://naver.me/5ZjdrJ3Q",navertalk:"#",daangn:"https://www.daangn.com/kr/local-profile/5wc4p38gfuoy/",tworld:"https://tworldfriends.co.kr/D634190010/subscribers/create"},
+    {id:"yongmun",name:"용문점",address:"대전 서구 계룡로 661-1",image:"images/store-yongmun.jpg",lat:36.33723627082111,lng:127.39489427547278,phone:"010-2859-6011",naver:"https://naver.me/FytQtAEK",navertalk:"https://naver.me/GgUe0vNy",daangn:"https://www.daangn.com/kr/local-profile/j69a7cum7pqm/",tworld:"https://tworldfriends.co.kr/D634190013/subscribers/create"},
+    {id:"asankwongok",name:"아산권곡점",address:"충남 아산시 문화로 271-6",image:"images/store-asankwongok.jpg",lat:36.788342575970425,lng:127.01581654750537,phone:"010-3072-6011",naver:"https://naver.me/GplJeXqn",navertalk:"https://naver.me/50JGTvtn",daangn:"https://www.daangn.com/kr/local-profile/iutk11xfiu5b/",tworld:"https://tworldfriends.co.kr/D634190012/subscribers/create"},
+    {id:"jiwell",name:"지웰시티점",address:"충북 청주시 흥덕구 대농로 47",image:"images/store-jiwell.jpg",lat:36.64206725549196,lng:127.42751718278974,phone:"010-6213-2010",naver:"https://naver.me/xUwgrDjt",navertalk:"https://naver.me/xUwgrDjt",daangn:"https://www.daangn.com/kr/local-profile/bo2se7i65gii/",tworld:"https://tworldfriends.co.kr/D634190015/subscribers/create"}
   ];
   const DEFAULT_STORE_COLUMNS = {
     "원신흥":"원신흥본점",
@@ -98,7 +63,7 @@
     }).filter(item=>item.model&&item.storage&&item.color);
   }
   async function loadData(){
-    try{const rows=await loadCsv(config.storesCsvUrl);if(rows?.length)state.stores=rows.map((r,i)=>({id:r.id||`store${i}`,name:r.name||r.store,address:r.address,lat:+r.lat||+r.latitude,lng:+r.lng||+r.longitude,phone:r.phone,naver:r.naver,navertalk:r.navertalk,daangn:r.daangn,tworld:r.tworld}))}catch(e){toast("매장 기본 정보로 표시 중이에요.")}
+    try{const rows=await loadCsv(config.storesCsvUrl);if(rows?.length)state.stores=rows.map((r,i)=>({id:r.id||`store${i}`,name:r.name||r.store,address:r.address,image:r.image||r.photo||`images/store-${r.id||i}.jpg`,lat:+r.lat||+r.latitude,lng:+r.lng||+r.longitude,phone:r.phone,naver:r.naver,navertalk:r.navertalk,daangn:r.daangn,tworld:r.tworld}))}catch(e){toast("매장 기본 정보로 표시 중이에요.")}
     try{const rows=await loadCsv(config.inventoryCsvUrl);if(rows?.length){const inventory=transformInventoryRows(rows);if(inventory.length)state.inventory=inventory}}catch(e){toast("샘플 재고로 화면을 확인하고 있어요.")}
     fillFilters();renderStores();searchInventory();
   }
@@ -107,7 +72,7 @@
   function actionLink(label,url,action,store,primary=false){return `<a class="action-button${primary?' primary':''}" href="${esc(url||'#')}" ${url&&url.startsWith('http')?'target="_blank" rel="noopener"':''} data-log="${action}" data-store="${esc(store.name)}">${label}</a>`}
   function renderStores(position){
     const list=state.stores.map(s=>({...s,distance:position?distanceKm(position.coords.latitude,position.coords.longitude,s.lat,s.lng):null})).sort((a,b)=>(a.distance??9999)-(b.distance??9999));
-    $("#storeList").innerHTML=list.map(s=>`<article class="store-card"><div class="card-top"><div><h3>${esc(s.name)}</h3><p class="address">${esc(s.address)}</p></div>${s.distance!==null?`<span class="distance">약 ${s.distance.toFixed(1)}km</span>`:''}</div><div class="card-actions">${actionLink("전화",`tel:${s.phone}`,"store_call",s,true)}${actionLink("길찾기",mapUrl(s),"store_map",s)}${actionLink("네이버톡",s.navertalk,"store_naver",s)}${actionLink("당근",s.daangn,"store_daangn",s)}</div></article>`).join("");
+    $("#storeList").innerHTML=list.map(s=>`<article class="store-card store-photo-card"><div class="store-photo"><img src="${esc(s.image||`images/store-${s.id}.jpg`)}" alt="${esc(s.name)} 매장 전경" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="store-photo-placeholder" hidden><span>T1</span><strong>${esc(s.name)}</strong><small>매장 사진 준비 중</small></div>${s.distance!==null?`<span class="distance photo-distance">약 ${s.distance.toFixed(1)}km</span>`:''}</div><div class="store-card-body"><div class="store-info"><h3>${esc(s.name)}</h3><p class="address">${esc(s.address)}</p></div><div class="card-actions store-actions">${actionLink("전화",`tel:${s.phone}`,"store_call",s,true)}${actionLink("길찾기",mapUrl(s),"store_map",s)}${actionLink("네이버톡",s.navertalk,"store_naver",s)}${actionLink("당근",s.daangn,"store_daangn",s)}</div></div></article>`).join("");
     bindLogs();
   }
   function locate(){if(!navigator.geolocation){$("#locationStatus").textContent="이 브라우저에서는 위치 확인이 어려워요. 전체 매장을 안내합니다.";return}const b=$("#locateButton");b.disabled=true;b.textContent="확인 중…";navigator.geolocation.getCurrentPosition(p=>{renderStores(p);$("#locationStatus").textContent="현재 위치에서 가까운 순으로 정렬했어요.";b.textContent="다시 확인";b.disabled=false;log("gps_allow")},()=>{$("#locationStatus").textContent="위치 권한 없이 전체 매장을 안내하고 있어요.";b.textContent="내 위치 확인";b.disabled=false;toast("브라우저에서 위치 권한을 허용해 주세요.")},{enableHighAccuracy:false,timeout:8000,maximumAge:300000})}
